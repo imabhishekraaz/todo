@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const taskMiddleware = require('./../middleware/task.middleware')
 
 const taskSchema = new mongoose.Schema({
     title:{
@@ -23,6 +24,8 @@ const taskSchema = new mongoose.Schema({
         required: true
     }
 });
+
+taskSchema.pre('aggregate', taskMiddleware.filterByDateAggregate);
 
 
 exports.taskModel = mongoose.model('task',taskSchema);

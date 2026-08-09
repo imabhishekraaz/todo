@@ -38,7 +38,8 @@ export const signupUser = async (userData) => {
 export const loginUser = async (userData) => {
 
     const loginUserAPI = import.meta.env?.VITE_LOGIN_URL;
-
+    console.log(loginUserAPI)
+    
     try {
         const response = await axios.post(loginUserAPI, userData);
         return response;

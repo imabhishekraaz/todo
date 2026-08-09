@@ -1,4 +1,5 @@
 const { taskModel } = require("../models/task.model");
+const mongoose = require('mongoose')
 
 /**
  * API - '/api/user/task'
@@ -115,33 +116,32 @@ exports.deleteUserTask = async (req,res) => {
  * API - 'api/user/tasks'
  */
 exports.userAllTasks = async (req, res) => {
-    // get the userId
     const userId = req.user.id;
+    const date = req.params.date;  
 
     try {
-        // fetch the tasks
-        const userTasks = await taskModel.find({ userId });
+        const tasks = await taskModel.aggregate([
+            {
+                $match: {
+                    userId: new mongoose.Types.ObjectId(userId)
+                }
+            }
+        ],
+        { filterDate: date });  
 
-        if(!userTasks) {
-            return res.status(404).json({
-                success: false,
-                message: "tasks not found",
-            })
-        }
-        
         return res.status(200).json({
             success: true,
-            length: userTasks.length,
-            userTasks
-        })
+            count: tasks.length,
+            tasks
+        });
 
     } catch (err) {
         return res.status(500).json({
             success: false,
             message: err.message
-        })
+        });
     }
-}
+};
 
 // get user task
 
@@ -172,3 +172,4 @@ exports.getUserTask = async (req,res) => {
         })
     }
 }
+

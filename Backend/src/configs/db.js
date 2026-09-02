@@ -1,19 +1,19 @@
 require('dotenv').config();
-const { default: mongoose } = require('mongoose');
+const mongoose = require('mongoose');
 
 const mongoDB = async () => {
+    const mongoURI = process.env.DB_URL || process.env.MONGODB_URI || 'mongodb://localhost:27017/taskdb';
 
     try {
-        await mongoose.connect(process.env.DB_URL);
-        console.log("MongoDB Connected successfully...")
+        await mongoose.connect(mongoURI);
+        console.log('MongoDB Connected successfully...');
     } catch (err) {
-        console.log(err.message)
+        console.log('MongoDB connection failed:', err.message);
     }
-}
+};
 
 module.exports = {
     mongoDB
-}   
-
+};
 
 

@@ -64,49 +64,48 @@ exports.signupUser = async (req, res) => {
  * @requires { password ,email }
  */
 exports.loginUser = async (req, res) => {
-
-    const { email, password } = req.body;
+    const normalizedEmail = (req.body.email || '').trim().toLowerCase();
+    const { password } = req.body;
 
     try {
-        // check user email and password
-        if (!email || !password) {
-            return res.status(500).json({
+        if (!normalizedEmail || !password) {
+            return res.status(400).json({
                 success: false,
-                message: 'All Fields required'
-            })
-        }
-        const userFound = await userModel
-                                .findOne({ email })
-                               
-
-        const isMatch = await bcrypt.compare(password, userFound.password)
-
-        if (!userFound || !isMatch) {
-            return res.status(500).json({
-                success: false,
-                message: 'Email and Password are incorrect'
+                message: 'All fields required'
             });
         }
-        const userDetails =  await userModel
-                                    .findOne({email})
-                                    .select('-password');
 
-        // create a token 
+        const userFound = await userModel.findOne({ email: normalizedEmail });
+
+        if (!userFound) {
+            return res.status(401).json({
+                success: false,
+                message: 'Email and password are incorrect'
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, userFound.password);
+
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Email and password are incorrect'
+            });
+        }
+
+        const userDetails = await userModel.findOne({ email: normalizedEmail }).select('-password');
         const token = await util.generateToken(userFound);
 
         return res.status(200).json({
             success: true,
-            message: "user login successfully",
+            message: 'user login successfully',
             userDetails,
             token
-            
-        })
-        
-    } catch(err) {
+        });
+    } catch (err) {
         return res.status(500).json({
-            success:false,
-            message:err.message
-        })
+            success: false,
+            message: err.message
+        });
     }
-
-}
+};

@@ -11,47 +11,37 @@ import useDocumentTitle from '../../Hooks/useDocumentTitle';
 
 const Login = () => {
 
-    const [email, setEmail] = useState();
-    const [password, setPassword] = useState();
-    const navigate = useNavigate()
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const navigate = useNavigate();
 
     useDocumentTitle('Login');
 
-    const userData = {
-        email: email,
-        password: password
-    };
-
     const handleLoginAPI = async (e) => {
+        e.preventDefault();
+        setErrorMessage('');
+
         try {
-            e.preventDefault();
-            const response = await loginUser(userData)
-            // console.log(response)
-            // Saved the user details in the localStorage
+            const response = await loginUser({ email, password });
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Login failed');
+            }
+
             localStorage.setItem('user', JSON.stringify({
                 name: response.data?.userDetails?.name,
                 email: response.data?.userDetails?.email,
                 token: response.data?.token,
-            }))
-            if(response.data.success) {
-                navigate('/',{ replace: true});
-            }
+            }));
 
+            navigate('/', { replace: true });
         } catch (err) {
-
-            if (err.response) {
-                console.error("Backend Error Message:", err.response.data);
-                console.error("Status Code:", err.response.status);
-
-            } else if (err.request) {
-                console.error("No response received from backend:", err.request);
-
-            } else {
-                console.error("Error setting up request:", err.message);
-            }
+            const message = err?.response?.data?.message || err?.message || 'No response received from backend';
+            setErrorMessage(message);
+            console.error(message);
         }
-
-    }
+    };
 
     return (
         <>
@@ -76,6 +66,7 @@ const Login = () => {
 
                                 <button type="submit" onClick={handleLoginAPI}>Signin</button>
                             </div>
+                            {errorMessage && <p className='error-message'>{errorMessage}</p>}
                         </form>
 
                         <div className='new-account'>
